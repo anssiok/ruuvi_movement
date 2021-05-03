@@ -1,0 +1,12 @@
+[General]
+listen=tag01
+webhook=https://your-webhook
+
+[Tags]
+tag01=C5:75:90:8A:30:9F
+tag02=C7:91:70:43:5B:52
+tag03=FB:D8:55:BE:DC:9A
+
+[tag01]
+[tag02]
+[tag03]
