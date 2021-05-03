@@ -7,6 +7,7 @@ ExecStart=/usr/bin/python3 -u /opt/ruuvi/ruuvi_movement.py
 Restart=on-failure
 User=root
 Group=root
+SyslogIdentifier=ruuvi_movement
 
 [Install]
 WantedBy=multi-user.target
