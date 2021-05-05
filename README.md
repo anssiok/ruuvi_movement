@@ -1,4 +1,4 @@
-# pyrpi
+# ruuvi_movement
 Simple movement detector using Ruuvitags and ruuvitag_sensor Python package.
 ## Installation example for Debian Linux / Raspberry Pi
 ### Python packages 
