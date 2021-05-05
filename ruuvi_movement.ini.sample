@@ -1,6 +1,8 @@
 [General]
 listen=tag01
 webhook=https://your-webhook
+tag_timeout=60
+timeout_check_interval=10
 
 [Tags]
 tag01=C5:75:90:8A:30:9F

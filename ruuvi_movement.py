@@ -1,33 +1,58 @@
 #!/usr/bin/python3
 from ruuvitag_sensor.ruuvi import RuuviTagSensor
-import requests, configparser
+import requests, configparser, signal
 from datetime import datetime
 
+# read config
 config = configparser.ConfigParser()
-config.read('ruuvi_movement.ini')
+config.read(['ruuvi_movement.ini','/opt/ruuvi/ruuvi_movement.ini'])
 
-listen=config.get('General', 'listen')
-webhook=config.get('General', 'webhook')
+listen = config.get('General', 'listen')
+webhook = config.get('General', 'webhook')
+tag_timeout = int(config.get('General', 'tag_timeout'))
+timeout_check_interval = int(config.get('General', 'timeout_check_interval'))
 
 macs = []
-listen_macs = []
 names = []
-move_count = -1
-
+timers = []
+move_counts = []
 for tag in config.items('Tags'):
     print(tag)
     names.append(tag[0])
     macs.append(tag[1])
+    move_counts.append(-1)
+    timers.append(datetime.now())
 
+listen_macs = []
 for l in listen.split(','):
     listen_macs.append(macs[names.index(l)])
     
 print('Listen: ' + str(listen_macs))
 
+# Handle timeouts
+def timer_handler(signum, frame):
+    for idx, mac in enumerate(macs):
+        if mac in listen_macs:
+            if timers[idx] == 0:
+                print ('Already at timeout: ' + names[idx])
+            elif timers[idx] != 0:
+                if (datetime.now() - timers[idx]).total_seconds() > tag_timeout:
+                    print('Timeout: ' + names[idx])
+                    timers[idx] = 0
+                else:
+                    print('No timeout: ' + names[idx])
+    signal.alarm(timeout_check_interval)
+
+signal.signal(signal.SIGALRM, timer_handler)
+signal.alarm(timeout_check_interval)
+
+# Handle data reception
 def handle_data(found_data):
-    global move_count
+    global move_counts
     found_mac = found_data[0]
-    found_name = names[macs.index(found_mac)]
+    idx = macs.index(found_mac)
+    found_name = names[idx]
+    move_count = move_counts[idx]
     print (
         datetime.now().strftime("%F %H:%M:%S") +
         ' mac: ' + str(found_data[1]['mac']) +
@@ -40,7 +65,9 @@ def handle_data(found_data):
         response = requests.post(
             webhook, headers={'Content-type': 'application/json'}, data='{"text":\''+msg+'\'}'
         )
-    move_count = found_data[1]["movement_counter"]
+    move_counts[idx] = found_data[1]["movement_counter"]
+    timers[idx] = datetime.now()
 
+# Get the data
 RuuviTagSensor.get_datas(handle_data, listen_macs)
-print('done')
+print('Exiting now')
