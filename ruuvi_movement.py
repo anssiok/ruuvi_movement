@@ -33,14 +33,21 @@ print('Listen: ' + str(listen_macs))
 def timer_handler(signum, frame):
     for idx, mac in enumerate(macs):
         if mac in listen_macs:
-            if timers[idx] == 0:
-                print ('Already at timeout: ' + names[idx])
-            elif timers[idx] != 0:
+#            if timers[idx] == 0:
+#                print ('Already at timeout: ' + names[idx])
+#            el
+            if timers[idx] != 0:
                 if (datetime.now() - timers[idx]).total_seconds() > tag_timeout:
-                    print('Timeout: ' + names[idx])
+                    msg = 'Ei yhteyttä: ' + names[idx]
+                    print(msg)
+                    response = requests.post(
+                        webhook,
+                        headers={'Content-type': 'application/json'},
+                        data='{"text":\'' + msg + '\'}'
+                    )
                     timers[idx] = 0
-                else:
-                    print('No timeout: ' + names[idx])
+#                else:
+#                    print('No timeout: ' + names[idx])
     signal.alarm(timeout_check_interval)
 
 signal.signal(signal.SIGALRM, timer_handler)
@@ -53,12 +60,12 @@ def handle_data(found_data):
     idx = macs.index(found_mac)
     found_name = names[idx]
     move_count = move_counts[idx]
-    print (
-        datetime.now().strftime("%F %H:%M:%S") +
-        ' mac: ' + str(found_data[1]['mac']) +
-        ' battery: ' + str(found_data[1]['battery']) +
-        ' movement_counter: ' + str(found_data[1]['movement_counter'])
-    )
+#    print (
+#        datetime.now().strftime("%F %H:%M:%S") +
+#        ' mac: ' + str(found_data[1]['mac']) +
+#        ' battery: ' + str(found_data[1]['battery']) +
+#        ' movement_counter: ' + str(found_data[1]['movement_counter'])
+#    )
     if move_count != -1 and move_count != found_data[1]['movement_counter']:
         msg = found_name + ' liikkuu!'
         print(msg)
