@@ -60,6 +60,9 @@ def handle_data(found_data):
     idx = macs.index(found_mac)
     found_name = names[idx]
     move_count = move_counts[idx]
+    if timers[idx] == 0:
+        print ('Yhteys palannut: ' + names[idx])
+    timers[idx] = datetime.now()
 #    print (
 #        datetime.now().strftime("%F %H:%M:%S") +
 #        ' mac: ' + str(found_data[1]['mac']) +
@@ -73,7 +76,6 @@ def handle_data(found_data):
             webhook, headers={'Content-type': 'application/json'}, data='{"text":\''+msg+'\'}'
         )
     move_counts[idx] = found_data[1]["movement_counter"]
-    timers[idx] = datetime.now()
 
 # Get the data
 RuuviTagSensor.get_datas(handle_data, listen_macs)
