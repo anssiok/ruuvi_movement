@@ -21,7 +21,7 @@ for tag in config.items('Tags'):
     names.append(tag[0])
     macs.append(tag[1])
     move_counts.append(-1)
-    timers.append(datetime.now())
+    timers.append(0)
 
 listen_macs = []
 for l in listen.split(','):
@@ -38,7 +38,7 @@ def timer_handler(signum, frame):
 #            el
             if timers[idx] != 0:
                 if (datetime.now() - timers[idx]).total_seconds() > tag_timeout:
-                    msg = 'Ei yhteyttä: ' + names[idx]
+                    msg = 'No connection: ' + names[idx]
                     print(msg)
                     response = requests.post(
                         webhook,
@@ -61,7 +61,7 @@ def handle_data(found_data):
     found_name = names[idx]
     move_count = move_counts[idx]
     if timers[idx] == 0:
-        print ('Yhteys palannut: ' + names[idx])
+        print ('Connection resumed: ' + names[idx])
     timers[idx] = datetime.now()
 #    print (
 #        datetime.now().strftime("%F %H:%M:%S") +
@@ -70,7 +70,7 @@ def handle_data(found_data):
 #        ' movement_counter: ' + str(found_data[1]['movement_counter'])
 #    )
     if move_count != -1 and move_count != found_data[1]['movement_counter']:
-        msg = found_name + ' liikkuu!'
+        msg = found_name + ' is moving!'
         print(msg)
         response = requests.post(
             webhook, headers={'Content-type': 'application/json'}, data='{"text":\''+msg+'\'}'
