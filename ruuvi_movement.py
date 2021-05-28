@@ -29,6 +29,15 @@ for l in listen.split(','):
     
 print('Listen: ' + str(listen_macs))
 
+def send_alert(msg):
+    print(msg)
+    response = requests.post(
+        webhook,
+        headers={'Content-type': 'application/json'},
+        data='{"text":\'' + msg + '\'}'
+    )
+    
+
 # Handle timeouts
 def timer_handler(signum, frame):
     for idx, mac in enumerate(macs):
@@ -38,13 +47,7 @@ def timer_handler(signum, frame):
 #            el
             if timers[idx] != 0:
                 if (datetime.now() - timers[idx]).total_seconds() > tag_timeout:
-                    msg = 'No connection: ' + names[idx]
-                    print(msg)
-                    response = requests.post(
-                        webhook,
-                        headers={'Content-type': 'application/json'},
-                        data='{"text":\'' + msg + '\'}'
-                    )
+                    send_alert('No connection: ' + names[idx])
                     timers[idx] = 0
 #                else:
 #                    print('No timeout: ' + names[idx])
@@ -61,7 +64,7 @@ def handle_data(found_data):
     found_name = names[idx]
     move_count = move_counts[idx]
     if timers[idx] == 0:
-        print ('Connection resumed: ' + names[idx])
+        send_alert('Connection resumed: ' + names[idx])
     timers[idx] = datetime.now()
 #    print (
 #        datetime.now().strftime("%F %H:%M:%S") +
@@ -70,11 +73,7 @@ def handle_data(found_data):
 #        ' movement_counter: ' + str(found_data[1]['movement_counter'])
 #    )
     if move_count != -1 and move_count != found_data[1]['movement_counter']:
-        msg = found_name + ' is moving!'
-        print(msg)
-        response = requests.post(
-            webhook, headers={'Content-type': 'application/json'}, data='{"text":\''+msg+'\'}'
-        )
+        send_alert(found_name + ' is moving!')
     move_counts[idx] = found_data[1]["movement_counter"]
 
 # Get the data
