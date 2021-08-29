@@ -11,6 +11,9 @@ listen = config.get('General', 'listen')
 webhook = config.get('General', 'webhook')
 tag_timeout = int(config.get('General', 'tag_timeout'))
 timeout_check_interval = int(config.get('General', 'timeout_check_interval'))
+notification_hours = config.get('General', 'notification_hours')
+hour_begin = int(notification_hours.split('-')[0])
+hour_end = int(notification_hours.split('-')[1])
 
 macs = []
 names = []
@@ -29,13 +32,24 @@ for l in listen.split(','):
     
 print('Listen: ' + str(listen_macs))
 
+def in_schedule():
+    hour_now = datetime.now().hour
+    if hour_begin <= hour_end:
+        if hour_now >= hour_begin and hour_now < hour_end:
+            return True
+    else:
+        if hour_now >= hour_begin or hour_now < hour_end:
+            return True
+    return False
+
 def send_alert(msg):
     print(msg)
-    response = requests.post(
-        webhook,
-        headers={'Content-type': 'application/json'},
-        data='{"text":\'' + msg + '\'}'
-    )
+    if in_schedule():
+        response = requests.post(
+            webhook,
+            headers={'Content-type': 'application/json'},
+            data='{"text":\'' + msg + '\'}'
+        )
     
 
 # Handle timeouts
@@ -55,6 +69,7 @@ def timer_handler(signum, frame):
 
 signal.signal(signal.SIGALRM, timer_handler)
 signal.alarm(timeout_check_interval)
+
 
 # Handle data reception
 def handle_data(found_data):
